@@ -1,7 +1,7 @@
 #-*-coding:utf_8 -*-
 '''
 created Date:20161012
-Author：wangjin
+Author拢:wangjin
 data1=sqlContext.sql("select sum(case when Date='null'then 1 else 0 end)as DateNULL,sum(case when Date!='null' then 1 else 0 end)as Date1 from dataTrain")
 data2=sqlContext.sql("select count(*) from dataTrain where Date_received='null'")
 data11=dataTrain1.map(lambda x:(int(x[0]),int(x[1]),int(x[3]),float(x[4]),int(x[5]),int(ProcesszType(x[6])),int(x[7]),int(ProcessType(x[8])))) 
@@ -34,7 +34,7 @@ def  ProcessTrain(sc):
     sqlC=SQLContext(sc)
     dataTrain=sqlC.read.parquet('/hadoop/hadoop_/wangjin/ccf_offline_train.parquet')
     sqlC.registerDataFrameAsTable(dataTrain,"dataTrain")
-    dataTrain1=sqlC.sql("select * from dataTrain where Date_received<'20160601' and Date_received!='null' and (Date<'20160601' or Date='null')")#修改月份
+    dataTrain1=sqlC.sql("select * from dataTrain where Date_received<'20160601' and Date_received!='null' and (Date<'20160601' or Date='null')")#脨脼赂脛脭脗路脻
     sqlC.registerDataFrameAsTable(dataTrain1,"dataTrain1")
     datacount=sqlC.sql("select count(*) from dataTrain1").map(lambda x:int(x[0])).take(1)[0]
     dataTrain2=dataTrain1.map(lambda x:(int(x[0]),int(x[1]),int(x[2]),float(x[3]),int(x[4]),int(ProcessType(x[5])),int(x[6]),int(ProcessType(x[7]))))
@@ -106,4 +106,5 @@ def LRResult(sc,tol=1e-1):
     print "time:",t2-t1
     return pro
 if "__main__"=="__name__":
-    LR(sc)
+    #LRTest(sc)
+    LRResult(sc)
