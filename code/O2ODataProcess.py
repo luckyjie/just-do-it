@@ -1,6 +1,6 @@
 # -*- coding:utf-8 -*-
 '''
-created date:20160118
+created date:20161012
 author:wangjin
 hadoop  fs  -copyFromLocal /data/home/hadoop/wangjin/lifeO2O/ccf_offline_test.txt /hadoop/hadoop_/wangjin
 hadoop fs -rm  /hadoop/hadoop_/wangjin/ccf_offline_train.csv 
