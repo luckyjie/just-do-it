@@ -1,7 +1,7 @@
 #-*-coding:utf_8 -*-
 '''
 created Date:20161012
-Author£ºwangjin
+AuthorÂ£:wangjin
 data1=sqlContext.sql("select sum(case when Date='null'then 1 else 0 end)as DateNULL,sum(case when Date!='null' then 1 else 0 end)as Date1 from dataTrain")
 data2=sqlContext.sql("select count(*) from dataTrain where Date_received='null'")
 data11=dataTrain1.map(lambda x:(int(x[0]),int(x[1]),int(x[3]),float(x[4]),int(x[5]),int(ProcesszType(x[6])),int(x[7]),int(ProcessType(x[8])))) 
@@ -234,4 +234,5 @@ def LRResult(sc,Date,tol=1e-1):
     print "time:",t2-t1
     return pro
 if "__main__"=="__name__":
-    LR(sc)
+    result47_3_6LRResult(sc,'20160301')
+    wPretxt(result47_3_6,'20160301')
