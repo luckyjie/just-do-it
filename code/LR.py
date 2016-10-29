@@ -8,6 +8,7 @@ data11=dataTrain1.map(lambda x:(int(x[0]),int(x[1]),int(x[3]),float(x[4]),int(x[
 
 '''
 from sklearn.linear_model import LogisticRegression 
+from sklearn.ensemble import GradientBoostingRegressor
 import numpy as np
 from pyspark.sql import SQLContext,Row
 import datetime,time
@@ -233,6 +234,20 @@ def LRResult(sc,Date,tol=1e-1):
     t2=time.time()
     print "time:",t2-t1
     return pro
+def GBDTresult(sc,Date)
+    t1=time.time()
+    dataTrainX,dataTrainY = ProcessTrain(sc,Date)
+    #dataTestX,dataTestY = ProcessTest(sc)
+    dataTestRealX=ProcessRealTest(sc)
+    model=GradientBoostingRegressor(loss='ls', learning_rate=0.1, n_estimators=100, subsample=1, min_samples_split=2, min_samples_leaf=1,\
+    max_depth=3, init=None, random_state=None, max_features=None, alpha=0.9, verbose=0, max_leaf_nodes=None, warm_start=False)
+    model.fit(dataTrainX,dataTrainY)
+    predict=model.predict_proba(dataTestRealX)
+    pro=[x[1] for x in predict]
+    t2=time.time()
+    print "time:",t2-t1
+    return pro
+
 if "__main__"=="__name__":
     result47_3_6LRResult(sc,'20160301')
     wPretxt(result47_3_6,'20160301')
