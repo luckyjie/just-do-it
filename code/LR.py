@@ -159,7 +159,7 @@ def  ProcessTrain(sc,Date):
     dataTrain=sqlC.read.parquet('/hadoop/hadoop_/wangjin/ccf_offline_train.parquet')
     sqlC.registerDataFrameAsTable(dataTrain,"dataTrain")
     #modify month
-    dataTrain1=sqlC.sql("select * from dataTrain where Date_received>="+Date+" and Date_received<'20160701' and Date_received!='null' and (Date>="+Date+" and(Date<'20160701' or Date='null'))")
+    dataTrain1=sqlC.sql("select * from dataTrain where Coupon_id!='null' and Date_received>="+Date+" and Date_received<'20160701' and Date_received!='null' ")
     sqlC.registerDataFrameAsTable(dataTrain1,"dataTrain1")
     datacount=sqlC.sql("select count(*) from dataTrain1").map(lambda x:int(x[0])).take(1)[0]
     dataTrain2=dataTrain1.map(lambda x:(int(x[0]),int(x[1]),int(x[2]),float(x[3]),int(x[4]),int(ProcessType(x[5])),int(x[6]),int(ProcessType(x[7]))))
@@ -254,5 +254,5 @@ def GBCresult(sc,Date):
 if "__main__"=="__name__":
     sqlC=SQLContext(sc)
     result47_3_6=LRResult(sc,'20160301')
-    resultGBC47_1_6=GBDTresult(sc,'20160101')
+    resultGBC47_1_6=GBCresult(sc,'20160101')
     wPretxt(result47_3_6,'20160301')
