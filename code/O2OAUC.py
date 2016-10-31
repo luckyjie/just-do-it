@@ -173,7 +173,7 @@ def  ProcessTrain(sc,Date,path):
     #dataTrainX=np.array(dataTrain2.map(lambda x:(x[0],x[1],x[2],x[3],x[4],x[5],x[6])).take(datacount))# Date:x[7]
     #dataTrainY=np.array(dataTrain2.map(lambda x:(x[8])).take(datacount))
     return dataTrainX,dataTrainY
-def ProcessTest(sc,apth):
+def ProcessTest(sc,path):
     sqlC=SQLContext(sc)
     dataTest=sqlC.read.parquet(path)
     sqlContext.registerDataFrameAsTable(dataTest,"dataTest")
