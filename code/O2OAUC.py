@@ -33,12 +33,58 @@ def ProcessType(stringName):
         return -1;
     else:
         return int(stringName)
+def ProcessGroupFeatures(sc,dataFea1):
+    '''
+    You can try  online_train data  to extract  groupby features
+    based on  user_id
+    dataOnlineTrain1=dataonlineTrain.groupby('user_id')
+    of course: offline_train data  ,coupon_ip ,discount_rate0 to  groupby features
+    dataFeaTemp4 = dataFea1.groupby(['Coupon_id', 'Discount_rate0']).count().toDF('Coupon_id', 'Discount_rate0', 'Cou_Disc_count')
+    '''
+    dataFeaTemp = dataFea1.groupby(['user_id', 'Merchant_id']).count().toDF('user_id','Merchant_id','user_Mer_count')
+    dataFeaTemp1 = dataFea1.groupby(['Merchant_id']).count().toDF('Merchant_id','Mer_count')
+    dataFeaTemp2 = dataFea1.groupby(['Merchant_id','Coupon_id']).count().toDF('Merchant_id', 'Coupon_id','Mer_Cou_count')
+    dataFeaTemp3 = dataFea1.groupby(['Merchant_id', 'Coupon_id','Distance']).count().toDF('Merchant_id', 'Coupon_id','Distance' ,'Mer_Cou_Dis_count')
+    dataFeaTemp4 = dataFea1.groupby(['Merchant_id', 'Distance']).count().toDF('Merchant_id', 'Distance', 'Mer_Dis_count')
+    #dataFeaTemp5 = dataFea1.groupby(['user_id', 'Distance']).count().toDF('user_id', 'Distance','user_Dis_count')
+    #merge groupby count as Features
+    dataFeaTempSum=dataFeaTemp.join(dataFeaTemp1,'Merchant_id').join(dataFeaTemp2,'Merchant_id').join(dataFeaTemp4,'Merchant_id').join(dataFeaTemp3,['Merchant_id','Coupon_id','Distance'])
+    sqlC.registerDataFrameAsTable(dataFeaTempSum, "dataFeaTempSum")
+    #  max   user_Mer_count  Mer_count  Mer_Cou_count  Mer_Cou_Dis_count  Mer_Dis_count
+    dataFeaMax=sqlC.sql("select max(user_Mer_count) as Max_user_Mer_count,max(Mer_count) as Max_Mer_count,\
+                                max(Mer_Cou_count) as Max_Mer_Cou_count, max(Mer_Cou_Dis_count) as Max_Mer_Cou_Dis_count,\
+                                max (Mer_Dis_count) as Max_Mer_Dis_count from dataFeaTempSum")
+    sqlC.registerDataFrameAsTable(dataFeaMax, "dataFeaMax")
+    #merge table   based on  'user_id', 'Merchant_id','Coupon_id','Distance'
+    dataFeaSum=dataFea1.join(dataFeaTempSum,['user_id', 'Merchant_id','Coupon_id','Distance'])
+    sqlC.registerDataFrameAsTable(dataFeaSum, "dataFeaSum")
+    #A.user_id,A.Merchant_id,A.Coupon_id,A.Distance,A.Discount_rate0,A.Discount_rate1,A.Date_received,
+    dataFeaResult = sqlC.sql("select A.*,\
+                            (A.user_Mer_count/B.Max_user_Mer_count) as user_Mer_count,\
+                            (A.Mer_count/B.Max_Mer_count) as Mer_count,\
+                            (A.Mer_Cou_count/B.Max_Mer_Cou_count) as Mer_Cou_count,\
+                         (A.Mer_Cou_Dis_count/B.Max_Mer_Cou_Dis_count) as Mer_Cou_Dis_count,\
+                         (A.Mer_Dis_count/B.Max_Mer_Dis_count) as Mer_Dis_count ,A.label\
+                         from dataFeaSum A,dataFeaMax B")
+    return dataFeaResult
 def ProcessFeatures(sc,dataFeatures):#using Flag to dup useful but failed!
     dataOfflineName=Row('user_id','Merchant_id','Coupon_id','Discount_rate0','Discount_rate1','Distance','Date_received','label')
     dataFea=dataFeatures.map(lambda x:dataOfflineName(*x))
     dataFea1=sqlC.createDataFrame(dataFea)
-    sqlC.registerDataFrameAsTable(dataFea1,"dataFea1")#user_id,Merchant_id,Coupon_id,
-    dataFea2=sqlC.sql("select Distance,\
+    dataFea1=ProcessGroupFeatures(sc,dataFea1)
+    sqlC.registerDataFrameAsTable(dataFea1,"dataFea1")#user_id,Merchant_id,Coupon_id,Distance,
+    dataFea2=sqlC.sql("select \
+                                (case when Distance=-1 then 1 else 0 end)as distance_1,\
+                                (case when Distance=1  then 1 else 0 end)as distance1,\
+                                (case when Distance=2  then 1 else 0 end)as distance2,\
+                                (case when Distance=3  then 1 else 0 end)as distance3,\
+                                (case when Distance=4  then 1 else 0 end)as distance4,\
+                                (case when Distance=5  then 1 else 0 end)as distance5,\
+                                (case when Distance=6  then 1 else 0 end)as distance6,\
+                                (case when Distance=7  then 1 else 0 end)as distance7,\
+                                (case when Distance=8  then 1 else 0 end)as distance8,\
+                                (case when Distance=9  then 1 else 0 end)as distance9,\
+                                (case when Distance=10 then 1 else 0 end)as distance10,\
                                 (case when Discount_rate0=0.2  then 1 else 0 end)as discount0point2,\
                                 (case when Discount_rate0=0.5  then 1 else 0 end)as discount0point5,\
                                 (case when Discount_rate0=0.6  then 1 else 0 end)as discount0point6,\
@@ -84,22 +130,37 @@ def ProcessFeatures(sc,dataFeatures):#using Flag to dup useful but failed!
                                 (case when Discount_rate0=300 and  Discount_rate1=20  then 1 else 0 end)as discount300point20,\
                                 (case when Discount_rate0=300 and  Discount_rate1=30  then 1 else 0 end)as discount300point30,\
                                 (case when Discount_rate0=300 and  Discount_rate1=50  then 1 else 0 end)as discount300point50,\
-                                (case when Discount_rate0=-1 and  Discount_rate1=0  then 1 else 0 end)as discount0point0 ,label \
+                                (case when Discount_rate0=-1 and  Discount_rate1=0  then 1 else 0 end)as discount0point0 ,\
+                                user_Mer_count ,Mer_count , Mer_Cou_count,  Mer_Cou_Dis_count,  Mer_Dis_countlabel,label \
                                 from dataFea1")
     dataResultX=dataFea2.map(lambda x:(x[0],x[1],x[2],x[3],x[4],x[5],x[6],x[7],x[8],x[9],x[10],\
                                       x[11],x[12],x[13],x[14],x[15],x[16],x[17],x[18],x[19],\
                                       x[20],x[21],x[22],x[23],x[24],x[25],x[26],x[27],x[28],x[29],\
                                       x[30],x[31],x[32],x[33],x[34],x[35],x[36],x[37],x[38],x[39],\
-                                      x[40],x[41],x[42],x[43],x[44],x[45],x[46]))
-    #,x[47],x[48],x[49],x[50],x[51],x[52],x[53],x[54],x[55],x[56],x[57],x[58],x[59]
-    dataResultY=dataFea2.map(lambda x:(x[47]))
+                                      x[40],x[41],x[42],x[43],x[44],x[45],x[46],x[47],x[48],x[49],
+                                      x[50],x[51],x[52],x[53],x[54],x[55],x[56],x[57],x[58],x[59],
+                                      x[60], x[61]))
+    #
+    dataResultY=dataFea2.map(lambda x:(x[62]))
     return dataResultX,dataResultY
 def ProcessFeaturesTest(sc,dataFeatures):#using Flag to dup useful but failed!
     dataOfflineName=Row('user_id','Merchant_id','Coupon_id','Discount_rate0','Discount_rate1','Distance','Date_received')
     dataFea=dataFeatures.map(lambda x:dataOfflineName(*x))
     dataFea1=sqlC.createDataFrame(dataFea)
-    sqlC.registerDataFrameAsTable(dataFea1,"dataFea1")#user_id,Merchant_id,Coupon_id,
-    dataFea2=sqlC.sql("select Distance,\
+    dataFea1 = ProcessGroupFeatures(sc, dataFea1)
+    sqlC.registerDataFrameAsTable(dataFea1,"dataFea1")#user_id,Merchant_id,Coupon_id,Distance,
+    dataFea2=sqlC.sql("select \
+                                    (case when Distance=-1 then 1 else 0 end)as distance_1,\
+                                    (case when Distance=1  then 1 else 0 end)as distance1,\
+                                    (case when Distance=2  then 1 else 0 end)as distance2,\
+                                    (case when Distance=3  then 1 else 0 end)as distance3,\
+                                    (case when Distance=4  then 1 else 0 end)as distance4,\
+                                    (case when Distance=5  then 1 else 0 end)as distance5,\
+                                    (case when Distance=6  then 1 else 0 end)as distance6,\
+                                    (case when Distance=7  then 1 else 0 end)as distance7,\
+                                    (case when Distance=8  then 1 else 0 end)as distance8,\
+                                    (case when Distance=9  then 1 else 0 end)as distance9,\
+                                    (case when Distance=10 then 1 else 0 end)as distance10,\
                                 (case when Discount_rate0=0.2  then 1 else 0 end)as discount0point2,\
                                 (case when Discount_rate0=0.5  then 1 else 0 end)as discount0point5,\
                                 (case when Discount_rate0=0.6  then 1 else 0 end)as discount0point6,\
@@ -145,16 +206,18 @@ def ProcessFeaturesTest(sc,dataFeatures):#using Flag to dup useful but failed!
                                 (case when Discount_rate0=300 and  Discount_rate1=20  then 1 else 0 end)as discount300point20,\
                                 (case when Discount_rate0=300 and  Discount_rate1=30  then 1 else 0 end)as discount300point30,\
                                 (case when Discount_rate0=300 and  Discount_rate1=50  then 1 else 0 end)as discount300point50,\
-                                (case when Discount_rate0=-1 and  Discount_rate1=0  then 1 else 0 end)as discount0point0  \
+                                (case when Discount_rate0=-1 and  Discount_rate1=0  then 1 else 0 end)as discount0point0 ,\
+                                user_Mer_count ,Mer_count , Mer_Cou_count,  Mer_Cou_Dis_count,  Mer_Dis_count  \
                                 from dataFea1")
     dataResultTestX=dataFea2.map(lambda x:(x[0],x[1],x[2],x[3],x[4],x[5],x[6],x[7],x[8],x[9],x[10],\
                                       x[11],x[12],x[13],x[14],x[15],x[16],x[17],x[18],x[19],\
                                       x[20],x[21],x[22],x[23],x[24],x[25],x[26],x[27],x[28],x[29],\
                                       x[30],x[31],x[32],x[33],x[34],x[35],x[36],x[37],x[38],x[39],\
-                                      x[40],x[41],x[42],x[43],x[44],x[45],x[46]))
-    #,x[47],x[48],x[49]
-    #x[50],x[51],x[52],x[53],x[54],x[55],x[56],x[57],x[58],x[59]
-    #dataResultY=dataFea2.map(lambda x:(x[50]))
+                                      x[40],x[41],x[42],x[43],x[44],x[45],x[46],x[47],x[48],x[49],
+                                      x[50], x[51], x[52], x[53], x[54], x[55], x[56], x[57], x[58], x[59],
+                                      x[60], x[61]))
+    #
+    #x[60],x[61],x[62],x[63],x[64],x[65],x[66]
     return dataResultTestX
 def  ProcessTrain(sc,Date,path):
     sqlC=SQLContext(sc)
