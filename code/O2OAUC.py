@@ -131,7 +131,7 @@ def ProcessFeatures(sc,dataFeatures):#using Flag to dup useful but failed!
                                 (case when Discount_rate0=300 and  Discount_rate1=30  then 1 else 0 end)as discount300point30,\
                                 (case when Discount_rate0=300 and  Discount_rate1=50  then 1 else 0 end)as discount300point50,\
                                 (case when Discount_rate0=-1 and  Discount_rate1=0  then 1 else 0 end)as discount0point0 ,\
-                                user_Mer_count ,Mer_count , Mer_Cou_count,  Mer_Cou_Dis_count,  Mer_Dis_countlabel,label \
+                                user_Mer_count ,Mer_count , Mer_Cou_count,  Mer_Cou_Dis_count,  Mer_Dis_count,label \
                                 from dataFea1")
     dataResultX=dataFea2.map(lambda x:(x[0],x[1],x[2],x[3],x[4],x[5],x[6],x[7],x[8],x[9],x[10],\
                                       x[11],x[12],x[13],x[14],x[15],x[16],x[17],x[18],x[19],\
