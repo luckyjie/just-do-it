@@ -63,11 +63,11 @@ def ProcessGroupFeatures(sc,dataFea1):
     sqlC.registerDataFrameAsTable(dataFeaSum, "dataFeaSum")
     #A.user_id,A.Merchant_id,A.Coupon_id,A.Distance,A.Discount_rate0,A.Discount_rate1,A.Date_received,
     dataFeaResult = sqlC.sql("select A.*,\
-                            (A.user_Mer_count/B.Max_user_Mer_count) as user_Mer_count,\
-                            (A.Mer_count/B.Max_Mer_count) as Mer_count,\
-                            (A.Mer_Cou_count/B.Max_Mer_Cou_count) as Mer_Cou_count,\
-                         (A.Mer_Cou_Dis_count/B.Max_Mer_Cou_Dis_count) as Mer_Cou_Dis_count,\
-                         (A.Mer_Dis_count/B.Max_Mer_Dis_count) as Mer_Dis_count ,A.label\
+                            (A.user_Mer_count/B.Max_user_Mer_count) as user_Mer_count1,\
+                            (A.Mer_count/B.Max_Mer_count) as Mer_count1,\
+                            (A.Mer_Cou_count/B.Max_Mer_Cou_count) as Mer_Cou_count1,\
+                         (A.Mer_Cou_Dis_count/B.Max_Mer_Cou_Dis_count) as Mer_Cou_Dis_count1,\
+                         (A.Mer_Dis_count/B.Max_Mer_Dis_count) as Mer_Dis_count1 ,A.label\
                          from dataFeaSum A,dataFeaMax B")
     return dataFeaResult
 
@@ -135,7 +135,7 @@ def ProcessFeatures(sc, dataFeatures):  # using Flag to dup useful but failed!
                                 (case when Discount_rate0=300 and  Discount_rate1=30  then 1 else 0 end)as discount300point30,\
                                 (case when Discount_rate0=300 and  Discount_rate1=50  then 1 else 0 end)as discount300point50,\
                                 (case when Discount_rate0=-1 and  Discount_rate1=0  then 1 else 0 end)as discount0point0 ,\
-                                 user_Mer_count ,Mer_count , Mer_Cou_count,  Mer_Cou_Dis_count,  Mer_Dis_count,label \
+                                 user_Mer_count1 ,Mer_count1 , Mer_Cou_count1,  Mer_Cou_Dis_count1,  Mer_Dis_count1,label \
                                 from dataFea1")
     dataResultX = dataFea2.map(lambda x: (x[0], x[1], x[2], x[3], x[4], x[5], x[6], x[7], x[8], x[9], x[10], \
                                           x[11], x[12], x[13], x[14], x[15], x[16], x[17], x[18], x[19], \
@@ -211,7 +211,8 @@ def ProcessFeaturesTest(sc, dataFeatures):  # using Flag to dup useful but faile
                                 (case when Discount_rate0=300 and  Discount_rate1=20  then 1 else 0 end)as discount300point20,\
                                 (case when Discount_rate0=300 and  Discount_rate1=30  then 1 else 0 end)as discount300point30,\
                                 (case when Discount_rate0=300 and  Discount_rate1=50  then 1 else 0 end)as discount300point50,\
-                                (case when Discount_rate0=-1 and  Discount_rate1=0  then 1 else 0 end)as discount0point0  \
+                                (case when Discount_rate0=-1 and  Discount_rate1=0  then 1 else 0 end)as discount0point0 ,\
+                                 user_Mer_count1 ,Mer_count1 , Mer_Cou_count1,  Mer_Cou_Dis_count1,  Mer_Dis_count1 \
                                 from dataFea1")
     dataResultTestX = dataFea2.map(lambda x: (x[0], x[1], x[2], x[3], x[4], x[5], x[6], x[7], x[8], x[9], x[10], \
                                               x[11], x[12], x[13], x[14], x[15], x[16], x[17], x[18], x[19], \
