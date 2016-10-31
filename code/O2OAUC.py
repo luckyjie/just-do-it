@@ -7,6 +7,7 @@ data2=sqlContext.sql("select count(*) from dataTrain where Date_received='null'"
 data11=dataTrain1.map(lambda x:(int(x[0]),int(x[1]),int(x[3]),float(x[4]),int(x[5]),int(ProcesszType(x[6])),int(x[7]),int(ProcessType(x[8]))))
 
 '''
+import xgboost as xgb
 from sklearn.linear_model import LogisticRegression
 from sklearn.ensemble import GradientBoostingRegressor,GradientBoostingClassifier
 import numpy as np
@@ -224,7 +225,32 @@ def GBCresult(sc,Date,path):
     pro=[x[1] for x in predict]
     t2=time.time()
     print "time:",t2-t1
-    return pro,dataTestY
+    return pro,dataTestYdef XGBoost(sc,Date,path):
+    t1 = time.time()
+    dataTrainX, dataTrainY = ProcessTrain(sc, Date, path)
+    dataTestX, dataTestY = ProcessTest(sc, path)
+    # default:loss='exponential','deviance'
+    model = xgb.XGBClassifier()
+    model.fit(dataTrainX, dataTrainY)
+    # predict=model.predict(dataTestRealX)
+    predict = model.predict_proba(dataTestX)
+    pro = [x[1] for x in predict]
+    t2 = time.time()
+    print "time:", t2 - t1
+    return pro, dataTestY
+def XGBC(sc,path):
+    # wangjin    path='/data/home/hadoop/wangjin/lifeO2O/'
+    sqlC = SQLContext(sc)
+    fr = open('/data/home/hadoop/wangjin/lifeO2O/resultAUC.txt', 'a')
+    fr.write('57XGBC:'+'\n')
+    for i in [ '20160401', '20160501']:#'20160101','20160201','20160301'
+        print 'i:', i
+        resultGBC47_1_5, dataTestY = XGBoost(sc, i,path)
+        y_scores = np.array(resultGBC47_1_5)
+        test_auc = metrics.roc_auc_score(dataTestY, y_scores)
+        fr.write(str(i) + ":" + str(test_auc) + '\n')
+        print "AUC:", test_auc
+    fr.close()
 def GBC(sc,path):
     # wangjin    path='/hadoop/hadoop_/wangjin/ccf_offline_train.parquet'
     sqlC = SQLContext(sc)
