@@ -177,8 +177,8 @@ def  ProcessTrain(sc,Date,path):
 def ProcessTest(sc,path):
     sqlC=SQLContext(sc)
     dataTest=sqlC.read.parquet(path)
-    sqlContext.registerDataFrameAsTable(dataTest,"dataTest")
-    dataTest1=sqlContext.sql("select * from dataTest where Date_received>='20160601' and Date_received!='null' ")
+    sqlC.registerDataFrameAsTable(dataTest,"dataTest")
+    dataTest1=sqlC.sql("select * from dataTest where Date_received>='20160601' and Date_received!='null' ")
     sqlC.registerDataFrameAsTable(dataTest1,"dataTest1")
     #print "123..."
     datacount=sqlC.sql("select count(*) from dataTest1").map(lambda x:int(x[0])).take(1)[0]
